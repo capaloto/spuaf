@@ -1,10 +1,9 @@
-package main
+package spuaf
 
 import (
 	"fmt"
 	"hash/fnv"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -16,13 +15,6 @@ var (
 	regUAs    = regexp.MustCompile("(?s)\\<td[ ]class\\=\"useragent\"\\>(.+?)\\<\\/td")
 	headerSet = make([]map[string]string, 0)
 )
-
-func main() {
-	req, _ := http.NewRequest("GET", "blah.com", nil)
-	Init()
-	Spuaf(req, "blah", "rah", "jahs")
-	log.Println(req.Header)
-}
 
 func Init() error {
 	rand.Seed(time.Now().UTC().UnixNano())
