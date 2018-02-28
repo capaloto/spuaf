@@ -1,8 +1,10 @@
-package spuaf
+package main
 
 import (
 	"fmt"
+	"hash/fnv"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -14,6 +16,13 @@ var (
 	regUAs    = regexp.MustCompile("(?s)\\<td[ ]class\\=\"useragent\"\\>(.+?)\\<\\/td")
 	headerSet = make([]map[string]string, 0)
 )
+
+func main() {
+	req, _ := http.NewRequest("GET", "blah.com", nil)
+	Init()
+	Spuaf(req, "blah", "rah", "jahs")
+	log.Println(req.Header)
+}
 
 func Init() error {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -39,11 +48,21 @@ func Init() error {
 	return nil
 }
 
-func Spuaf(req *http.Request) error {
+// if no seeds add a random header
+// else seed the hash with the seeds
+func Spuaf(req *http.Request, seeds ...string) error {
 	if len(headerSet) < 1 {
 		return fmt.Errorf("No headers found did you init Spuaf?")
 	}
-	headers := headerSet[rand.Intn(len(headerSet))]
+	var headers map[string]string
+	if len(seeds) < 1 {
+		headers = headerSet[rand.Intn(len(headerSet))]
+	} else {
+		seed := strings.Join(seeds, ".")
+		hash := fnv.New32a()
+		hash.Write([]byte(seed))
+		headers = headerSet[hash.Sum32()%uint32(len(headerSet))]
+	}
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
